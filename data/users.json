@@ -1,0 +1,19 @@
+{
+   "user1" : {
+      "id" : 1,
+      "Name" : "chris",
+      "serviceProvider" : false
+   },
+	
+   "user2" : {
+      "id" : 2,
+      "Name" : "varun",
+      "serviceProvider" : false
+   },
+	
+   "user3" : {
+      "id" : 3,
+      "Name" : "edwin",
+      "serviceProvider" : true
+   }
+}
