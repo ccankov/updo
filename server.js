@@ -146,7 +146,7 @@ app.get('/api/*', function(req, res) {
     GET - /api/*<br /><br />\
     &nbsp&nbsp&nbsp&nbspPrints the Web API documentation.<br /><br />\
     GET - /api/addUser/:name/:serviceProvider&nbsp&nbsp&nbsp&nbsp[string name, bool serviceProvider]<br /><br />\
-    &nbsp&nbsp&nbsp&nbsp Add a new User with specified name and use specified bool to set if they are a service provider.<br />\
+    &nbsp&nbsp&nbsp&nbspAdd a new User with specified name and use specified bool to set if they are a service provider.<br />\
     &nbsp&nbsp&nbsp&nbspUser IDs increment by 1 and are never reused.<br /><br />\
     GET - /api/bookAppt/:userID/:providerID/:dateTime&nbsp&nbsp&nbsp&nbsp[int userID, int providerID, DateTime dateTime]<br /><br />\
     &nbsp&nbsp&nbsp&nbspCreate a new Appointment between user with specified ID and provider with specified ID at the specified dateTime.<br />\
