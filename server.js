@@ -6,8 +6,8 @@ const fs = require("fs");
 //const $ = require("jquery");
 
 // Global constants & variables
-const ENVPORT = process.env.PORT;
-const ENVIP = process.env.IP;
+const ENVPORT = 8080;
+const ENVIP = "127.0.0.1";
 const dirname = "data";
 var users = JSON.parse(fs.readFileSync(dirname+'/'+'users.json','utf8'));
 var appointments = JSON.parse(fs.readFileSync(dirname+'/'+'appointments.json','utf8'));
