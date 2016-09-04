@@ -76,9 +76,7 @@
     app.get('/api/addUser/:name/:serviceProvider', function(req, res) {
         var user = new User(users.length+1,req.params.name, req.params.serviceProvider === "true" || req.params.serviceProvider === "1" ? true : false);
         users[users.length] = user;
-        fs.writeFile(dirname + "/"+"users.json",JSON.stringify(users),'utf8', function(err){
-          if (err) { return console.log("ERROR: Unable to commit new user to database.");}
-        });
+        fs.writeFile(dirname + "/"+"users.json",JSON.stringify(users),'utf8', function(err){ if (err) { return console.log("WRITE ERROR: Unable to commit new user to database.");} });
         res.json(user);
     });
     
@@ -86,57 +84,49 @@
     app.get('/api/bookAppt/:userID/:providerID/:dateTime', function(req, res) {
         var appointment = new Appointment(appointments.length+1,req.params.userID,req.params.providerID,req.params.dateTime,false);
         appointments[appointments.length] = appointment;  
-        fs.writeFile(dirname + "/"+"appointments.json",JSON.stringify(appointments),'utf8', function(err){
-            if (err) {return console.log("Unable to commit new user to database.");}
-        });
+        fs.writeFile(dirname + "/"+"appointments.json",JSON.stringify(appointments),'utf8', function(err){ if (err) {return console.log("WRITE ERROR: Unable to commit new appointment to database.");} });
         res.json(appointment);
     });
     
     // Confirm an appointment; takes parameter apptID
     app.get('/api/confirmAppt/:apptID', function(req, res) {
         appointments[req.params.apptID-1].status = true;
-        fs.writeFile(dirname + "/"+"appointments.json",JSON.stringify(appointments),'utf8', function(err){
-            if (err) { return console.log("Unable to save confirmed appointment.");}
-        });
+        fs.writeFile(dirname + "/"+"appointments.json",JSON.stringify(appointments),'utf8', function(err){ if (err) { return console.log("WRITE ERROR: Unable to commit confirmed appointment to database.");} });
         res.json(appointments[req.params.apptID-1]);
     });
     
     // Delete an appointment; takes parameter apptID
     app.get('/api/deleteAppt/:apptID', function(req, res) {
         appointments[req.params.apptID-1] = {};
-        fs.writeFile(dirname + "/"+"appointments.json",JSON.stringify(appointments),'utf8', function(err){
-            if (err) {return console.log("Unable to delete appointment.");}
-        });
+        fs.writeFile(dirname + "/"+"appointments.json",JSON.stringify(appointments),'utf8', function(err){ if (err) {return console.log("WRITE ERROR: Unable to delete appointment from database.");} });
         res.json(appointments[req.params.apptID-1]);
     });
     
     // Delete user with specified id; takes parameter userID
     app.get('/api/deleteUser/:userID', function(req, res) {
         users[req.params.userID-1] = {};
-        fs.writeFile(dirname + "/"+"users.json",JSON.stringify(users),'utf8', function(err){
-            if (err) {return console.log("Unable delete user.");}
-        });
+        fs.writeFile(dirname + "/"+"users.json",JSON.stringify(users),'utf8', function(err){ if (err) {return console.log("WRITE ERROR: Unable to delete user from database.");} });
         res.json(users[req.params.userID-1]);
     });
     
     // List details of appointment with specified id; takes parameter apptID
     app.get('/api/getAppt/:apptID', function (req, res) {
-          res.json(appointments[req.params.apptID-1]);
+        res.json(appointments[req.params.apptID-1]);
     });
     
     // List details of user with specified id; takes parameter userID
     app.get('/api/getUser/:userID', function (req, res) {
-          res.json(users[req.params.userID-1]);
+        res.json(users[req.params.userID-1]);
     });
     
     // List all appointments
     app.get('/api/listAppts', function(req, res) {
-            res.json(appointments);
+        res.json(appointments);
     });
     
     // List all users
     app.get('/api/listUsers', function(req, res) {
-            res.json(users);
+        res.json(users);
     });
     
     // Catch all - documentation
