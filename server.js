@@ -96,7 +96,7 @@
             res.json(appointment);
         });
     });
-    
+
     // Confirm an appointment; takes parameter apptID
     app.get('/api/confirmAppt/:apptID', function(req, res) {
         Appointment.findByIdAndUpdate(req.params.apptID, { status: true }, function(err, data) {
@@ -117,25 +117,19 @@
     // Delete user with specified id; takes parameter userID
     app.get('/api/deleteUser/:userID', function(req, res) {
         User.findByIdAndRemove(req.params.userID, function(err) {
-            if (err) { return res.send(dbErr + "Unable to delete user with ID " + req.params.apptID + " : " + err); }
+            if (err) { return res.send(dbErr + "Unable to delete user with ID " + req.params.userID + " : " + err); }
             res.json({});
         });
     });
     
     // List details of appointment with specified id; takes parameter apptID
     app.get('/api/getAppt/:apptID', function (req, res) {
-        Appointment.findById(req.params.apptID, function (err, data) {
-            if (err) { return res.send(dbErr + "Unable to get appointment with ID " + req.params.apptID + " : " + err); }
-            res.json(data);
-        });
+        res.json(req.params.appt);
     });
     
     // List details of user with specified id; takes parameter userID
     app.get('/api/getUser/:userID', function (req, res) {
-        User.findById(req.params.userID, function (err, data) {
-            if (err) { return res.send(dbErr + "Unable to get user with ID " + req.params.userID + " : " + err); }
-            res.json(data);
-        });
+        res.json(req.params.user);
     });
     
     // List all appointments

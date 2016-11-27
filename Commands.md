@@ -2,6 +2,10 @@
 
 $ npm install express --save
 
+/* Install Mongoose */
+
+npm install mongoose@4.5.8 --save
+
 /* Install MongoDB */
 
 sudo apt-get install -y mongodb-org
@@ -15,8 +19,3 @@ $ chmod a+x mongod
 /* Run MongoDB */
 
 $ ./mongod
-
-/* Install Mongoose */
-
-npm install mongoose@4.5.8 --save
-
