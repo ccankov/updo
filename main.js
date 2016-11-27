@@ -9,7 +9,7 @@ function User(id, name, sp) {
 
 /* Main */
 // Port & IP Constants
-const ENVPORT = process.env.PORT;
+const ENVPORT = 8081;
 const ENVIP = process.env.IP;
 
 // Load modules
