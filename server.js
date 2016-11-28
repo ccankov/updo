@@ -23,7 +23,7 @@
         dateTime: { type: Date, default: Date.now },
         status: Boolean
     });
-    
+
 /* MongoDB Models */
     var User = mongoose.model('User', userSchema);
     var Appointment = mongoose.model('Appointment', apptSchema);
@@ -49,9 +49,10 @@
     
     // Handle error checking for dateTime parameter
     app.param('dateTime', function(req,res,next,dateTime){
-        dateTime = Date.parse(dateTime);
-        if (isNaN(dateTime)) { return res.status(400).send("Parameter dateTime is not in a valid format."); }
-        req.params.dateTime = new Date(dateTime);
+        var tempDate = Date.parse(dateTime);
+        if (isNaN(tempDate)) { tempDate = Number(dateTime) * 1000; }
+        if (isNaN(tempDate)) { return res.status(400).send("Parameter dateTime is not in a valid format."); }
+        req.params.dateTime = new Date(tempDate);
         next();
     });
     
@@ -66,7 +67,7 @@
     app.param('providerID', function(req,res,next,providerID){
         User.findById(providerID, '_id name serviceProvider', function (err, data) {
             if (err) { return res.status(400).send('Unable to find user with ID ' + providerID); }
-            else if (!data.serviceProvider) { res.status(400).send('The specified service provider with ID ' + providerID + ' is not a registered service provider.'); }
+            else if (!data.serviceProvider) { return res.status(400).send('The specified service provider with ID ' + providerID + ' is not a registered service provider.'); }
             req.params.provider = data;
             next();
         });
@@ -80,7 +81,7 @@
 
 /* Web API methods */
     // Add a new user with unique id; takes parameters name & serviceProvider
-    app.get('/api/addUser/:name/:serviceProvider', function(req, res) {
+    app.post('/api/User/:name/:serviceProvider', function(req, res) {
         var user = new User( { name: req.params.name, serviceProvider: (req.params.serviceProvider === "true" || req.params.serviceProvider === "1" ? true : false) } );
         user.save(function(err) { 
             if (err){ return res.send(dbErr + "Unable to commit new user to database: " + err); }
@@ -89,7 +90,7 @@
     });
     
     // Book an appointment with specified user; takes parameters userID, providerID & dateTime
-    app.get('/api/bookAppt/:userID/:providerID/:dateTime', function(req, res) {
+    app.post('/api/Appointment/:userID/:providerID/:dateTime', function(req, res) {
         var appointment = new Appointment({ userID: req.params.userID, providerID: req.params.providerID, dateTime: req.params.dateTime, status: false });
         appointment.save(function(err) { 
             if (err){ return res.send(dbErr + "Unable to commit new appointment to database: " + err); } 
@@ -98,7 +99,7 @@
     });
 
     // Confirm an appointment; takes parameter apptID
-    app.get('/api/confirmAppt/:apptID', function(req, res) {
+    app.patch('/api/Appointment/:apptID', function(req, res) {
         Appointment.findByIdAndUpdate(req.params.apptID, { status: true }, function(err, data) {
             if (err) { return res.send(dbErr + "Unable to confirm appointment with ID " + req.params.apptID + " : " + err); }
             data.status = true;
@@ -107,7 +108,7 @@
     });
     
     // Delete an appointment; takes parameter apptID
-    app.get('/api/deleteAppt/:apptID', function(req, res) {
+    app.delete('/api/Appointment/:apptID', function(req, res) {
         Appointment.findByIdAndRemove(req.params.apptID, function(err) {
             if (err) { return res.send(dbErr + "Unable to delete appointment with ID " + req.params.apptID + " : " + err); }
             res.json({});
@@ -115,7 +116,7 @@
     });
     
     // Delete user with specified id; takes parameter userID
-    app.get('/api/deleteUser/:userID', function(req, res) {
+    app.delete('/api/User/:userID', function(req, res) {
         User.findByIdAndRemove(req.params.userID, function(err) {
             if (err) { return res.send(dbErr + "Unable to delete user with ID " + req.params.userID + " : " + err); }
             res.json({});
@@ -123,17 +124,17 @@
     });
     
     // List details of appointment with specified id; takes parameter apptID
-    app.get('/api/getAppt/:apptID', function (req, res) {
+    app.get('/api/Appointment/:apptID', function (req, res) {
         res.json(req.params.appt);
     });
     
     // List details of user with specified id; takes parameter userID
-    app.get('/api/getUser/:userID', function (req, res) {
+    app.get('/api/User/:userID', function (req, res) {
         res.json(req.params.user);
     });
     
     // List all appointments
-    app.get('/api/listAppts', function(req, res) {
+    app.get('/api/Appointments', function(req, res) {
         Appointment.find({}, function (err, data) {
             if (err) { return res.send(dbErr + "Unable to get list of appointments : " + err); }
             res.json(data);
@@ -141,7 +142,7 @@
     });
     
     // List all users
-    app.get('/api/listUsers', function(req, res) {
+    app.get('/api/Users', function(req, res) {
         User.find({}, function (err, data) {
             if (err) { return res.send(dbErr + "Unable to get list of users : " + err); }
             res.json(data);
@@ -153,25 +154,25 @@
         res.send("Invalid Web API call. <br /><br />\
         GET - /api/*<br /><br />\
         &nbsp&nbsp&nbsp&nbspPrints the Web API documentation.<br /><br />\
-        GET - /api/addUser/:name/:serviceProvider&nbsp&nbsp&nbsp&nbsp[string name, bool serviceProvider]<br /><br />\
+        POST - /api/User/:name/:serviceProvider&nbsp&nbsp&nbsp&nbsp[string name, bool serviceProvider]<br /><br />\
         &nbsp&nbsp&nbsp&nbspAdd a new User with specified name and use specified bool to set if they are a service provider.<br />\
         &nbsp&nbsp&nbsp&nbspUser IDs increment by 1 and are never reused.<br /><br />\
-        GET - /api/bookAppt/:userID/:providerID/:dateTime&nbsp&nbsp&nbsp&nbsp[int userID, int providerID, DateTime dateTime]<br /><br />\
+        POST - /api/Appointment/:userID/:providerID/:dateTime&nbsp&nbsp&nbsp&nbsp[int userID, int providerID, DateTime dateTime]<br /><br />\
         &nbsp&nbsp&nbsp&nbspCreate a new Appointment between user with specified ID and provider with specified ID at the specified dateTime.<br />\
         &nbsp&nbsp&nbsp&nbspAppointment IDs increment by 1 and are never reused. Newly created appointments have a status of false (unconfirmed).<br /><br />\
-        GET - /api/confirmAppt/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
+        PATCH - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspConfirm the Appointment with the specified appointment ID by changing its status from false to true.<br /><br />\
-        GET - /api/deleteAppt/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
+        DELETE - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspDelete the Appointment with the specified appointment ID.<br /><br />\
-        GET - /api/deleteUser/:userID&nbsp&nbsp&nbsp&nbsp[int userID]<br /><br />\
+        DELETE - /api/User/:userID&nbsp&nbsp&nbsp&nbsp[int userID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspDelete the User with the specified user ID.<br /><br />\
-        GET - /api/getAppt/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
+        GET - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the Appointment with the specified appointment ID.<br /><br />\
-        GET - /api/getUser/:userID&nbsp&nbsp&nbsp&nbsp[int userID]<br /><br />\
+        GET - /api/User/:userID&nbsp&nbsp&nbsp&nbsp[int userID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the User with the specified user ID.<br /><br />\
-        GET - /api/listAppts<br /><br />\
+        GET - /api/Appointments<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the array of all Appointment objects.<br /><br />\
-        GET - /api/listUsers<br /><br />\
+        GET - /api/Users<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the array of all User objects.");
     });
 
