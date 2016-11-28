@@ -12,6 +12,7 @@
     const dbErr = "MongoDB Error: ";
 
 /* MongoDB Schemas */
+    // Define the schema or stucture of data
     var userSchema = new mongoose.Schema({
         name: String,
         serviceProvider: Boolean
@@ -25,6 +26,7 @@
     });
 
 /* MongoDB Models */
+    // Used to perform query operations against these db schemas
     var User = mongoose.model('User', userSchema);
     var Appointment = mongoose.model('Appointment', apptSchema);
 
@@ -32,7 +34,7 @@
     // Handle error checking for apptID parameter
     app.param('apptID', function(req,res,next,apptID){
         Appointment.findById(apptID, '_id userID providerID dateTime status', function (err, data) {
-            if (err) { return res.status(400).send('Unable to find appointment with ID ' + apptID); }
+            if (err) { return res.status(500).send('Unable to find appointment with ID ' + apptID); }
             req.params.appt = data;
             next();
         });
@@ -41,7 +43,7 @@
     // Handle error checking for userID parameter
     app.param('userID', function(req,res,next,userID){
         User.findById(userID, '_id name serviceProvider', function (err, data) {
-            if (err) { return res.status(400).send('Unable to find user with ID ' + userID); }
+            if (err) { return res.status(500).send('Unable to find user with ID ' + userID); }
             req.params.user = data;
             next();
         });
@@ -66,7 +68,7 @@
     // Handle error checking for providerID parameter
     app.param('providerID', function(req,res,next,providerID){
         User.findById(providerID, '_id name serviceProvider', function (err, data) {
-            if (err) { return res.status(400).send('Unable to find user with ID ' + providerID); }
+            if (err) { return res.status(500).send('Unable to find user with ID ' + providerID); }
             else if (!data.serviceProvider) { return res.status(400).send('The specified service provider with ID ' + providerID + ' is not a registered service provider.'); }
             req.params.provider = data;
             next();
@@ -84,7 +86,7 @@
     app.post('/api/User/:name/:serviceProvider', function(req, res) {
         var user = new User( { name: req.params.name, serviceProvider: (req.params.serviceProvider === "true" || req.params.serviceProvider === "1" ? true : false) } );
         user.save(function(err) { 
-            if (err){ return res.send(dbErr + "Unable to commit new user to database: " + err); }
+            if (err){ return res.status(500).send(dbErr + "Unable to commit new user to database: " + err); }
             res.json(user);
         });
     });
@@ -93,7 +95,7 @@
     app.post('/api/Appointment/:userID/:providerID/:dateTime', function(req, res) {
         var appointment = new Appointment({ userID: req.params.userID, providerID: req.params.providerID, dateTime: req.params.dateTime, status: false });
         appointment.save(function(err) { 
-            if (err){ return res.send(dbErr + "Unable to commit new appointment to database: " + err); } 
+            if (err){ return res.status(500).send(dbErr + "Unable to commit new appointment to database: " + err); } 
             res.json(appointment);
         });
     });
@@ -101,7 +103,7 @@
     // Confirm an appointment; takes parameter apptID
     app.patch('/api/Appointment/:apptID', function(req, res) {
         Appointment.findByIdAndUpdate(req.params.apptID, { status: true }, function(err, data) {
-            if (err) { return res.send(dbErr + "Unable to confirm appointment with ID " + req.params.apptID + " : " + err); }
+            if (err) { return res.status(500).send(dbErr + "Unable to confirm appointment with ID " + req.params.apptID + " : " + err); }
             data.status = true;
             res.json(data);
         });
@@ -110,7 +112,7 @@
     // Delete an appointment; takes parameter apptID
     app.delete('/api/Appointment/:apptID', function(req, res) {
         Appointment.findByIdAndRemove(req.params.apptID, function(err) {
-            if (err) { return res.send(dbErr + "Unable to delete appointment with ID " + req.params.apptID + " : " + err); }
+            if (err) { return res.status(500).send(dbErr + "Unable to delete appointment with ID " + req.params.apptID + " : " + err); }
             res.json({});
         });
     });
@@ -118,7 +120,7 @@
     // Delete user with specified id; takes parameter userID
     app.delete('/api/User/:userID', function(req, res) {
         User.findByIdAndRemove(req.params.userID, function(err) {
-            if (err) { return res.send(dbErr + "Unable to delete user with ID " + req.params.userID + " : " + err); }
+            if (err) { return res.status(500).send(dbErr + "Unable to delete user with ID " + req.params.userID + " : " + err); }
             res.json({});
         });
     });
@@ -136,7 +138,7 @@
     // List all appointments
     app.get('/api/Appointments', function(req, res) {
         Appointment.find({}, function (err, data) {
-            if (err) { return res.send(dbErr + "Unable to get list of appointments : " + err); }
+            if (err) { return res.status(500).send(dbErr + "Unable to get list of appointments : " + err); }
             res.json(data);
         });
     });
@@ -144,7 +146,7 @@
     // List all users
     app.get('/api/Users', function(req, res) {
         User.find({}, function (err, data) {
-            if (err) { return res.send(dbErr + "Unable to get list of users : " + err); }
+            if (err) { return res.status(500).send(dbErr + "Unable to get list of users : " + err); }
             res.json(data);
         });
     });
