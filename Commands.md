@@ -6,6 +6,11 @@ $ npm install express --save
 
 npm install mongoose@4.5.8 --save
 
+/* Install Angular + Routes */
+
+npm install angular
+npm install angular-route
+
 /* Install MongoDB */
 
 sudo apt-get install -y mongodb-org
