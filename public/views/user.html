@@ -1,11 +1,40 @@
-<div id="navbar">
-    <div id="logo">UPDO</div>
-    <div id="welcome">
-        Hello, {{ curUser.name }}!
-    </div>
-    <a href="/#/">
-        <div id="changeuser">
-            Change user
+<nav class="nav has-shadow">
+    <div class="container">
+        <div class="nav-left">
+            <a class="nav-item is-brand content is-medium" href="/#/">
+                updo
+            </a>
         </div>
-    </a>
-</div>
+        <div class="nav-right">
+            <span class="nav-item">
+                Hello, {{ curUser.name }}!
+            </span>
+            <span class="nav-item">
+                <a class="button is-primary" href="/#/">
+                    Change User
+                </a>
+            </span>
+        </div>
+    </div>
+</nav>
+<section class="section">
+    <div class='container'>
+        <div class="columns">
+            <div class='column is-one-quarter'>
+                <div class='box'>
+                    <aside class="menu">
+                        <p class="menu-label">
+                            My updo
+                        </p>
+                        <ul class="menu-list">
+                            <li><a>Appointments</a></li>
+                        </ul>
+                    </aside>
+                </div>
+            </div>
+            <div class='column'>
+                
+            </div>
+        </div>
+    </div>
+</section>
