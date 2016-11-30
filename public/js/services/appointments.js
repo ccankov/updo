@@ -1,9 +1,8 @@
 app.factory('appointments', ['$http', '__env', function($http, __env) {
-  return $http.get(__env.apiUrl + '/api/Appointments')
-         .success(function(data) {
-           return data;
-         })
-         .error(function(data) {
-           return data;
-         });
+  return function(id) {
+        return $http({
+            method: 'GET',
+            url: (__env.apiUrl + '/api/Appointments/' + id),
+        });
+    };
 }]);

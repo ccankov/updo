@@ -1,5 +1,4 @@
 /* Header */
-
     // Load modules
     const express = require("express");
     const app = express();
@@ -22,8 +21,8 @@
     });
     
     var apptSchema = new mongoose.Schema({
-        userID: String,
-        providerID: String,
+        userID: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        providerID: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
         dateTime: { type: Date, default: Date.now },
         status: Boolean
     });
@@ -138,9 +137,22 @@
         res.json(req.params.user);
     });
     
+    // List all appointments for user with specified id; takes parameter userID
+    app.get('/api/Appointments/:userID', function(req, res) {
+        Appointment.find({userID: req.params.userID})
+        .populate('providerID')
+        .exec(function(err, data){
+            if (err) { return res.status(500).send(dbErr + "Unable to get list of appointments : " + err); }
+            res.json(data);
+        });
+    });
+    
     // List all appointments
     app.get('/api/Appointments', function(req, res) {
-        Appointment.find({}, function (err, data) {
+        Appointment.find({})
+        .populate('userID')
+        .populate('providerID')
+        .exec(function(err, data){
             if (err) { return res.status(500).send(dbErr + "Unable to get list of appointments : " + err); }
             res.json(data);
         });
