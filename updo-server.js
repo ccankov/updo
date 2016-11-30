@@ -137,6 +137,16 @@
         res.json(req.params.user);
     });
     
+    // List all appointments for provider with specified provider id; takes parameter providerID
+    app.get('/api/AppointmentsForProvider/:providerID', function(req, res) {
+        Appointment.find({providerID: req.params.providerID})
+        .populate('userID')
+        .exec(function(err, data){
+            if (err) { return res.status(500).send(dbErr + "Unable to get list of appointments : " + err); }
+            res.json(data);
+        });
+    });
+    
     // List all appointments for user with specified id; takes parameter userID
     app.get('/api/Appointments/:userID', function(req, res) {
         Appointment.find({userID: req.params.userID})
@@ -174,19 +184,23 @@
         POST - /api/User/:name/:serviceProvider&nbsp&nbsp&nbsp&nbsp[string name, bool serviceProvider]<br /><br />\
         &nbsp&nbsp&nbsp&nbspAdd a new User with specified name and use specified bool to set if they are a service provider.<br />\
         &nbsp&nbsp&nbsp&nbspUser IDs increment by 1 and are never reused.<br /><br />\
-        POST - /api/Appointment/:userID/:providerID/:dateTime&nbsp&nbsp&nbsp&nbsp[int userID, int providerID, DateTime dateTime]<br /><br />\
+        POST - /api/Appointment/:userID/:providerID/:dateTime&nbsp&nbsp&nbsp&nbsp[string userID, string providerID, DateTime dateTime]<br /><br />\
         &nbsp&nbsp&nbsp&nbspCreate a new Appointment between user with specified ID and provider with specified ID at the specified dateTime.<br />\
         &nbsp&nbsp&nbsp&nbspAppointment IDs increment by 1 and are never reused. Newly created appointments have a status of false (unconfirmed).<br /><br />\
-        PATCH - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
+        PATCH - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[string apptID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspConfirm the Appointment with the specified appointment ID by changing its status from false to true.<br /><br />\
-        DELETE - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
+        DELETE - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[string apptID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspDelete the Appointment with the specified appointment ID.<br /><br />\
-        DELETE - /api/User/:userID&nbsp&nbsp&nbsp&nbsp[int userID]<br /><br />\
+        DELETE - /api/User/:userID&nbsp&nbsp&nbsp&nbsp[string userID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspDelete the User with the specified user ID.<br /><br />\
-        GET - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[int apptID]<br /><br />\
+        GET - /api/Appointment/:apptID&nbsp&nbsp&nbsp&nbsp[string apptID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the Appointment with the specified appointment ID.<br /><br />\
-        GET - /api/User/:userID&nbsp&nbsp&nbsp&nbsp[int userID]<br /><br />\
+        GET - /api/User/:userID&nbsp&nbsp&nbsp&nbsp[string userID]<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the User with the specified user ID.<br /><br />\
+        GET - /api/AppointmentsForProvider/:providerID&nbsp&nbsp&nbsp&nbsp[string providerID]<br /><br />\
+        &nbsp&nbsp&nbsp&nbspReturns the array of Appointment objects for the provider with specfied provider ID.<br /><br />\
+        GET - /api/Appointments/:userID&nbsp&nbsp&nbsp&nbsp[string userID]<br /><br />\
+        &nbsp&nbsp&nbsp&nbspReturns the array of Appointment objects for the user with specfied user ID.<br /><br />\
         GET - /api/Appointments<br /><br />\
         &nbsp&nbsp&nbsp&nbspReturns the array of all Appointment objects.<br /><br />\
         GET - /api/Users<br /><br />\

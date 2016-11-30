@@ -1,0 +1,81 @@
+<section class='hero is-primary'>
+    <nav class='nav'>
+        <div class='container'>
+            <div class="nav-left">
+                <a class="nav-item is-brand content is-medium" href="/#/">
+                    updo
+                </a>
+            </div>
+            <div class="nav-center">
+                <span class="nav-item">
+                    Hello, {{ curUser.name }}!
+                </span>
+            </div>
+            <div class="nav-right">
+                <span class="nav-item">
+                    <a class="button" href="/#/">
+                        Sign out
+                    </a>
+                </span>
+            </div>
+        </div>
+    </nav>
+</section>
+<nav class="nav has-shadow">
+    <div class="container">
+        <div class="nav-left">
+            <a class="nav-item is-tab" href="#/User/{{ curUser._id }}">My Appointments</a>
+            <a class="nav-item is-tab is-active" ng-show="curUser.serviceProvider">My Services</a>
+        </div>
+    </div>
+</nav>
+<section class="section">
+    <div class='container'>
+        <h3 class="subtitle is-5">UPCOMING</h3>
+        <hr>
+        <div class="columns is-multiline">
+            <div class='column is-half' ng-repeat="appointment in appointmentsUpcoming">
+                <div class="card is-fullwidth">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            {{ appointment.userID[0].name}}
+                        </p>
+                        <div class="nav-center">
+                            <span class="nav-item">
+                                {{ appointment.status ? 'Confirmed' : 'Not confirmed' }}
+                            </span>
+                        </div>
+                        <p class="nav-item">
+                            {{ appointment.dateTime | date : 'short' }}
+                        </p>
+                    </header>
+                    <footer class="card-footer">
+                        <a class="card-footer-item {{ appointment.status ? 'is-disabled is-hidden' : ' ' }}" ng-click="confirmAppt($index)">Confirm</a>
+                        <a class="card-footer-item" ng-click="deleteAppt($index)">Cancel</a>
+                    </footer>
+                </div>
+            </div>
+        </div>
+        <h3 class="subtitle is-5">PAST</h3>
+        <hr>
+        <div class="columns is-multiline">
+            <div class='column is-half' ng-repeat="appointment in appointmentsPast">
+                <div class="card is-fullwidth">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            {{ appointment.userID[0].name}}
+                        </p>
+                        <div class="nav-center">
+                            <span class="nav-item">
+                                {{ appointment.status ? 'Confirmed' : 'Not confirmed' }}
+                            </span>
+                        </div>
+                        <p class="nav-item">
+                            {{ appointment.dateTime | date : 'short' }}
+                        </p>
+                    </header>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
