@@ -47,8 +47,32 @@
                             updo
                         </a>
                     </div>
-                    <div class="nav-left">
-                        <p class="nav-item"></p>
+                    <div class="nav-center">
+                        <div class="nav-item">
+                            <p class="control">
+                                <span class="select">
+                                    <select ng-model='chosenProvider'>
+                                        <option value="" disabled selected>Enter provider</option>
+                                        <option ng-repeat="provider in providers" value="{{ provider._id }}">{{ provider.name }}</option>
+                                    </select>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="nav-item">
+                            <p class="control">
+                                <input class="input" type="text" placeholder="Enter date and time" ng-model='chosenDate'>
+                            </p>
+                        </div>
+                        <div class="nav-item">
+                            <p class="control">
+                                <a class="button is-primary is-inverted" ng-click='bookAppointment();'>
+                                    <span class="icon">
+                                        <i class="fa fa-plus"></i>
+                                    </span>
+                                    <span>BOOK NOW</span>
+                                </a>
+                            </p>
+                        </div>
                     </div>
                     <div class="nav-right" style='padding-right: 20px;'>
                         <span class="nav-item">

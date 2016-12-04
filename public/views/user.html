@@ -1,4 +1,4 @@
-<nav class="nav has-shadow">
+<nav class="nav has-shadow" ng-show="currentUser">
     <div class="container">
         <div class="nav-left">
             <a class="nav-item is-tab is-active" href="#/" >My Appointments</a>
@@ -6,7 +6,7 @@
         </div>
     </div>
 </nav>
-<section class="section">
+<section class="section" ng-show="currentUser">
     <div class='container'>
         <h3 class="subtitle is-5">UPCOMING</h3>
         <hr>

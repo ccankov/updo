@@ -191,7 +191,6 @@
     
     // Book an appointment with specified user; takes parameters userID, providerID & dateTime
     app.post('/api/Appointment/:userID/:providerID/:dateTime', function(req, res) {
-        //if (req.payload._id !== req.params.userID){ return res.status(401).send("Unauthorized: Cannot create appointments for private user."); }
         var appointment = new Appointment({ userID: req.params.userID, providerID: req.params.providerID, dateTime: req.params.dateTime, status: false });
         appointment.save(function(err) { 
             if (err){ return res.status(500).send(dbErr + "Unable to commit new appointment to database: " + err); }
@@ -202,7 +201,6 @@
     // Confirm an appointment; takes parameter apptID
     app.patch('/api/Appointment/:apptID', auth, validateID, function(req, res) {
         Appointment.findByIdAndUpdate(req.params.apptID, { status: true }, function(err, data) {
-            //if (req.payload._id !== data.userID){ return res.status(401).send("Unauthorized: Cannot modify appointments for private user."); }
             if (err) { return res.status(500).send(dbErr + "Unable to confirm appointment with ID " + req.params.apptID + " : " + err); }
             data.status = true;
             res.json(data);
@@ -256,6 +254,15 @@
         .populate('providerID')
         .exec(function(err, data){
             if (err) { return res.status(500).send(dbErr + "Unable to get list of appointments : " + err); }
+            res.json(data);
+        });
+    });
+    
+    // List all users who are service providers
+    app.get('/api/Providers', auth, validateID, function(req, res) {
+        User.find({serviceProvider: true})
+        .exec(function(err, data){
+            if (err) { return res.status(500).send(dbErr + "Unable to get list of users : " + err); }
             res.json(data);
         });
     });

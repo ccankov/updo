@@ -10,6 +10,16 @@ app.service('data', ['$http', 'authentication', function($http, authentication) 
         });
     };
     
+    var getProviders = function () {
+        return $http({
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer '+ authentication.getToken()
+            },
+            url: ('/api/Providers/'),
+        });
+    };
+    
     var getAppointmentsForProvider = function (id) {
         return $http({
             method: 'GET',
@@ -29,12 +39,24 @@ app.service('data', ['$http', 'authentication', function($http, authentication) 
             url: ('/api/Appointment/' + id),
         });
     };
+    
+    var bookAppointment = function(userID, providerID, dateTime) {
+        return $http({
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer '+ authentication.getToken()
+            },
+            url: ('/api/Appointment/' + userID + '/' + providerID + '/' + dateTime),
+        });
+    };
 
     return {
         
         appointment: appointment,
+        bookAppointment: bookAppointment,
         getAppointments : getAppointments,
-        getAppointmentsForProvider : getAppointmentsForProvider
+        getAppointmentsForProvider : getAppointmentsForProvider,
+        getProviders : getProviders
     };
     
 }]);
