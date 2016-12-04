@@ -10,14 +10,10 @@ var app = angular.module('Updo', ['ngRoute']);
 app.config(function ($routeProvider) {
   $routeProvider
     .when('/', {
-      controller: 'LoginController',
-      templateUrl: 'views/login.html'
-    })
-    .when('/User/:id', {
       controller: 'UserController',
       templateUrl: 'views/user.html'
     })
-    .when('/Provider/:id', {
+    .when('/Provider', {
       controller: 'ProviderController',
       templateUrl: 'views/provider.html'
     })
@@ -25,6 +21,13 @@ app.config(function ($routeProvider) {
       redirectTo: '/'
     });
 });
+app.run(['$rootScope', '$location', 'authentication', function($rootScope, $location, authentication) {
+    $rootScope.$on('$routeChangeStart', function(event, nextRoute, currentRoute) {
+        if ($location.path() === '/Provider' && !authentication.isLoggedIn()) {
+            $location.path('/');
+        }
+    });
+}]);
 
 // Register environment in AngularJS as constant
 app.constant('__env', env);

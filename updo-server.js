@@ -1,7 +1,19 @@
 /* Header */
     // Load modules
+    const config = require('./config/config.js');
+    const crypto = require('crypto');
+    const jwt = require('jsonwebtoken');
     const express = require("express");
+    const passport = require('passport');
+    const bodyParser = require('body-parser');
+    const multer = require('multer'); // v1.0.5
+    const upload = multer(); // for parsing multipart/form-data
     const app = express();
+    var jwte = require('express-jwt');
+    var auth = jwte({
+        secret: config.secret,
+        userProperty: 'payload'
+    });
     const mongoose = require('mongoose');
     mongoose.connect('mongodb://localhost/updo');
     
@@ -16,9 +28,42 @@
 /* MongoDB Schemas */
     // Define the schema or stucture of data
     var userSchema = new mongoose.Schema({
-        name: String,
-        serviceProvider: Boolean
+        email: {
+            type: String,
+            unique: true,
+            required: true
+        },
+        name: {
+            type: String,
+            required: true
+        },
+        serviceProvider: Boolean,
+        hash: String,
+        salt: String
     });
+    // Set user password: Define user salt and hash based on provided password
+    userSchema.methods.setPassword = function(password){
+        this.salt = crypto.randomBytes(16).toString('hex');
+        this.hash = crypto.pbkdf2Sync(password, this.salt, 1000, 64).toString('hex');
+    };
+    // Validate password: Compare provided password against salt and hash
+    userSchema.methods.validPassword = function(password) {
+        var hash = crypto.pbkdf2Sync(password, this.salt, 1000, 64).toString('hex');
+        return this.hash === hash;
+    };
+    // Generate auth token for user
+    userSchema.methods.generateJwt = function() {
+        var expiry = new Date();
+        expiry.setDate(expiry.getDate() + 7);
+    
+         return jwt.sign({
+            _id: this._id,
+            email: this.email,
+            name: this.name,
+            serviceProvider: this.serviceProvider,
+            exp: parseInt(expiry.getTime() / 1000),
+        }, config.secret);
+    };
     
     var apptSchema = new mongoose.Schema({
         userID: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -31,6 +76,23 @@
     // Used to perform query operations against these db schemas
     var User = mongoose.model('User', userSchema);
     var Appointment = mongoose.model('Appointment', apptSchema);
+
+/* Web API Middleware */
+    // Passport configuration required after User model is defined
+    require('./config/passport.js');
+    // Passport initialization
+    app.use(passport.initialize());
+    
+    // Make sure protected paths have a valid user ID
+    var validateID = function(req, res, next) {
+        // If no user ID exists in the JWT return a 400
+        if (!req.payload._id) { return res.status(400).send("Unauthorized: Private profile."); }
+        next();
+    };
+    
+    // Parse JSON objects & application/x-www-form-urlencoded
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
 /* Web API Parameters */
     // Handle error checking for apptID parameter
@@ -84,27 +146,72 @@
     });
 
 /* Web API methods */
-    // Add a new user with unique id; takes parameters name & serviceProvider
+    // Register a new user, requires name, password, serviceProvider, and email in req body
+    app.post('/api/User', upload.array(), function(req, res) {
+        if (req.body.name && req.body.email && req.body.password) {
+            var user = new User();
+            
+            user.name = req.body.name;
+            user.email = req.body.email;
+            user.serviceProvider = req.body.serviceProvider;
+            
+            user.setPassword(req.body.password);
+            
+            user.save(function(err) {
+                if (err) { return res.status(500).send(dbErr + "Unable to commit new user to database: " + err); }
+                
+                var token;
+                token = user.generateJwt();
+                res.json({
+                    "token" : token
+                });
+            });
+        }
+        else { return res.status(400).send('Invalid user registration request.'); }
+    });
+    
+    // Login an existing user, requires 
+    app.post('/api/login', upload.array(), function(req, res) {
+        passport.authenticate('local', function(err, user, info){
+            var token;
+        
+            // If Passport throws/catches an error
+            if (err) { return res.status(401).send("Access denied: " + err); }
+        
+            // If a user is found
+            if(user){
+                token = user.generateJwt();
+                res.json({ "token" : token });
+            } else {
+                // If user is not found
+                res.status(400).send("Invalid user: " + info);
+            }
+        })(req, res);
+    });
+    
+    /* Add a new user with unique id; takes parameters name & serviceProvider
     app.post('/api/User/:name/:serviceProvider', function(req, res) {
         var user = new User( { name: req.params.name, serviceProvider: (req.params.serviceProvider === "true" || req.params.serviceProvider === "1" ? true : false) } );
         user.save(function(err) { 
             if (err){ return res.status(500).send(dbErr + "Unable to commit new user to database: " + err); }
             res.json(user);
         });
-    });
+    });*/
     
     // Book an appointment with specified user; takes parameters userID, providerID & dateTime
     app.post('/api/Appointment/:userID/:providerID/:dateTime', function(req, res) {
+        //if (req.payload._id !== req.params.userID){ return res.status(401).send("Unauthorized: Cannot create appointments for private user."); }
         var appointment = new Appointment({ userID: req.params.userID, providerID: req.params.providerID, dateTime: req.params.dateTime, status: false });
         appointment.save(function(err) { 
-            if (err){ return res.status(500).send(dbErr + "Unable to commit new appointment to database: " + err); } 
+            if (err){ return res.status(500).send(dbErr + "Unable to commit new appointment to database: " + err); }
             res.json(appointment);
         });
     });
 
     // Confirm an appointment; takes parameter apptID
-    app.patch('/api/Appointment/:apptID', function(req, res) {
+    app.patch('/api/Appointment/:apptID', auth, validateID, function(req, res) {
         Appointment.findByIdAndUpdate(req.params.apptID, { status: true }, function(err, data) {
+            //if (req.payload._id !== data.userID){ return res.status(401).send("Unauthorized: Cannot modify appointments for private user."); }
             if (err) { return res.status(500).send(dbErr + "Unable to confirm appointment with ID " + req.params.apptID + " : " + err); }
             data.status = true;
             res.json(data);
@@ -112,7 +219,7 @@
     });
     
     // Delete an appointment; takes parameter apptID
-    app.delete('/api/Appointment/:apptID', function(req, res) {
+    app.delete('/api/Appointment/:apptID', auth, validateID, function(req, res) {
         Appointment.findByIdAndRemove(req.params.apptID, function(err) {
             if (err) { return res.status(500).send(dbErr + "Unable to delete appointment with ID " + req.params.apptID + " : " + err); }
             res.json({});
@@ -120,7 +227,8 @@
     });
     
     // Delete user with specified id; takes parameter userID
-    app.delete('/api/User/:userID', function(req, res) {
+    app.delete('/api/User/:userID', auth, validateID, function(req, res) {
+        if (req.payload._id !== req.params.userID){ return res.status(401).send("Unauthorized: Cannot delete private user."); }
         User.findByIdAndRemove(req.params.userID, function(err) {
             if (err) { return res.status(500).send(dbErr + "Unable to delete user with ID " + req.params.userID + " : " + err); }
             res.json({});
@@ -128,17 +236,20 @@
     });
     
     // List details of appointment with specified id; takes parameter apptID
-    app.get('/api/Appointment/:apptID', function (req, res) {
+    app.get('/api/Appointment/:apptID', auth, validateID, function (req, res) {
+        if (req.payload._id !== req.params.appt.userID){ return res.status(401).send("Unauthorized: Cannot retrieve appointments for private user."); }
         res.json(req.params.appt);
     });
     
     // List details of user with specified id; takes parameter userID
-    app.get('/api/User/:userID', function (req, res) {
+    app.get('/api/User/:userID', auth, validateID, function (req, res) {
+        if (req.payload._id !== req.params.user._id){ return res.status(401).send("Unauthorized: Cannot retrieve details for private user."); }
         res.json(req.params.user);
     });
     
     // List all appointments for provider with specified provider id; takes parameter providerID
-    app.get('/api/AppointmentsForProvider/:providerID', function(req, res) {
+    app.get('/api/AppointmentsForProvider/:providerID', auth, validateID, function(req, res) {
+        if (req.payload._id !== req.params.providerID){ return res.status(401).send("Unauthorized: Cannot retrieve appointments for private user."); }
         Appointment.find({providerID: req.params.providerID})
         .populate('userID')
         .exec(function(err, data){
@@ -148,7 +259,8 @@
     });
     
     // List all appointments for user with specified id; takes parameter userID
-    app.get('/api/Appointments/:userID', function(req, res) {
+    app.get('/api/Appointments/:userID', auth, validateID, function(req, res) {
+        if (req.payload._id !== req.params.userID){ return res.status(401).send("Unauthorized: Cannot retrieve appointments for private user."); }
         Appointment.find({userID: req.params.userID})
         .populate('providerID')
         .exec(function(err, data){
@@ -177,7 +289,7 @@
     });
     
     // Catch all - documentation
-    app.get('/api/*', function(req, res) {
+    app.get('/api/*', auth, validateID, function(req, res) {
         res.send("Invalid Web API call. <br /><br />\
         GET - /api/*<br /><br />\
         &nbsp&nbsp&nbsp&nbspPrints the Web API documentation.<br /><br />\
@@ -210,6 +322,14 @@
     // Frontend AngularJS-based single page website
     app.get('*', function(req, res) {
         res.sendFile('index.html', { root:"public" });
+    });
+    
+/* Error Handling Middleware */
+    // Catch unauthorised errors
+    app.use(function (err, req, res, next) {
+        if (err.name === 'UnauthorizedError') {
+            res.status(401).json({"message" : err.name + ": " + err.message});
+        }
     });
 
 /* Server */

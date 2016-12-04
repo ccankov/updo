@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html ng-app="Updo">
     
     <head>
         
@@ -9,6 +9,7 @@
         
         <!-- Styles -->
         <link rel="stylesheet" href="node_modules/bulma/css/bulma.css" type="text/css" />
+        <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css" type="text/css" />
         
         <!-- Title -->
         <title>Updo - New barber, no stress.</title>
@@ -24,21 +25,108 @@
         <script src="js/app.js"></script>
     
         <!-- Controllers -->
-        <script src="js/controllers/LoginController.js"></script>
+        <script src="js/controllers/BodyController.js"></script>
         <script src="js/controllers/UserController.js"></script>
         <script src="js/controllers/ProviderController.js"></script>
+        <script src="js/controllers/RegisterController.js"></script>
+        <script src="js/controllers/LoginController.js"></script>
     
         <!-- Services -->
-        <script src="js/services/appointment.js"></script>
-        <script src="js/services/appointments.js"></script>
-        <script src="js/services/appointmentsForProvider.js"></script>
-        <script src="js/services/user.js"></script>
+        <script src="js/services/authentication.js"></script>
+        <script src="js/services/data.js"></script>
     
     </head>
     
-    <body ng-app="Updo">
+    <body ng-controller="BodyController">
+        
+        <section class='hero is-primary'>
+            <nav class='nav'>
+                <div class='container'>
+                    <div class="nav-left">
+                        <a class="nav-item is-brand content is-medium" href="/#/">
+                            updo
+                        </a>
+                    </div>
+                    <div class="nav-left">
+                        <p class="nav-item"></p>
+                    </div>
+                    <div class="nav-right" style='padding-right: 20px;'>
+                        <span class="nav-item">
+                            <a ng-hide="isLoggedIn" class="button" ng-click='login=true;'>
+                                Log in
+                            </a>
+                            <a ng-show="isLoggedIn"  class="button" ng-click='logout();' href='/#/Redirect'>
+                                {{ currentUser.name }}
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </nav>
+        </section>
         
         <ng-view></ng-view>
+        
+        <div ng-controller='RegisterController' ng-class="{'modal': true, 'is-active': register}">
+            <div class='modal-background'></div>
+            <div class='modal-card' style="width: 300px">
+                <form ng-submit="onSubmit()">
+                    
+                    <header class="modal-card-head has-text-centered">
+                        <p class="modal-card-title">Register</p>
+                    </header>
+                    <section class="modal-card-body">
+                        <label for='name' class="label">Name</label>
+                        <p class="control has-icon has-icon-right">
+                            <input class="input" type="text" id="name" placeholder="Enter name" ng-model="credentials.name">
+                        </p>
+                        <label for='email' class="label">Email</label>
+                        <p class="control has-icon has-icon-right">
+                            <input class="input" type="email" id="email" placeholder="Enter email" ng-model="credentials.email">
+                        </p>
+                        <label for='password' class="label">Password</label>
+                        <p class="control has-icon has-icon-right">
+                            <input class="input" type="password" id="password" placeholder="Password" ng-model="credentials.password">
+                        </p>
+                        <p class="control">
+                            <label for='serviceProvider' class="checkbox">
+                                <input type="checkbox" id='serviceProvider' ng-model="credentials.serviceProvider">
+                                Service provider
+                            </label>
+                        </p>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <button type="submit" class="button is-primary">Register</button>
+                        <a class="button" ng-click='$parent.register=false;$parent.login=true;'>Log in</a>
+                        <a class="button" ng-click='$parent.register=false;'>Cancel</a>
+                    </footer>
+                </form>
+            </div>
+        </div>
+        <div ng-controller='LoginController' ng-class="{'modal': true, 'is-active': login}">
+            <div class='modal-background'></div>
+            <div class='modal-card' style="width: 300px">
+                <form ng-submit="onSubmit()">
+                    <header class="modal-card-head has-text-centered">
+                        <p class="modal-card-title">Log In</p>
+                    </header>
+                    <section class="modal-card-body">
+                        <label for='email' class="label">Email</label>
+                        <p class="control has-icon has-icon-right">
+                            <input class="input" type="email" id="email" placeholder="Enter email" ng-model="credentials.email">
+                        </p>
+                        <label for='password' class="label">Password</label>
+                        <p class="control has-icon has-icon-right">
+                            <input class="input" type="password" id="password" placeholder="Password" ng-model="credentials.password">
+                        </p>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <button type="submit" class="button is-primary">Log in</button>
+                        <a class="button" ng-click='$parent.login=false;$parent.register=true;'>Register</a>
+                        <a class="button" ng-click='$parent.login=false;'>Cancel</a>
+                    </footer>
+                </form>
+            </div>
+        </div>
 
     </body>
     
