@@ -12,5 +12,3 @@ Run server.js using Node: node server.js
 Once running, Web API documentation can be found at:
 
 /api/
-
-eg: http://69.181.171.240:8080/api/
